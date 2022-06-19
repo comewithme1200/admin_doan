@@ -7,15 +7,16 @@ import { Box, Button, Container, Grid, TextField, Typography } from "@mui/materi
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { DashboardLayout } from "../components/dashboard-layout";
 import { AppContext } from "src/context/AppContext";
 import { createUser } from "../utils/api/user";
-import { getMe } from "../utils/api/user";
+import { DashboardLayout } from "../components/dashboard-layout";
+import { getMe, getUserById } from "../utils/api/user";
 import { getLocalStorage } from "../utils/helpers/localStorage";
 
 const ClientRegister = () => {
   const [token, setToken] = useState(null);
-  const { isAdmin, setIsAdmin, loguedUser, setLoguedUser } = useContext(AppContext);
+  const [userInfo, setUserInfo] = useState(null);
+  const { isAdmin, setIsAdmin, loguedUser, setLoguedUser, userDetailId, setUserDetailId } = useContext(AppContext);
 
   const router = useRouter();
   useEffect(() => {
@@ -28,6 +29,15 @@ const ClientRegister = () => {
 
   useEffect(() => {
     async function fetchData() {
+    const { data, request } = await getUserById(token, userDetailId);
+    if (request.ok) {
+        formik.setFieldValue("address", data.address);
+        formik.setFieldValue("email", data.email);
+        formik.setFieldValue("name", data.name);
+        formik.setFieldValue("phone", data.phoneNumber);
+        formik.setFieldValue("dob", data.dob);
+        setUserInfo(data);
+    }
       if (!loguedUser) {
         const { data, request } = await getMe({ token });
         if (request.ok) {
@@ -37,10 +47,10 @@ const ClientRegister = () => {
       }
     }
 
-    if (!loguedUser) {
-      fetchData();
-    }
+    fetchData();
   }, [token]);
+
+  console.log(userInfo);
 
   const formik = useFormik({
     initialValues: {
@@ -48,17 +58,13 @@ const ClientRegister = () => {
       email: "",
       name: "",
       phone: "",
-      dob: new Date(),
-      password: "",
-      re_pass: ""
+      dob: new Date()
     },
     validationSchema: Yup.object({
       email: Yup.string().required("Vui lòng nhập email"),
       name: Yup.string().required("Vui lòng nhập tên"),
       phone: Yup.string().required("Vui lòng nhập số điện thoại"),
       address: Yup.string().required("Vui lòng nhập địa chỉ"),
-      password: Yup.string().required("Vui lòng nhập mật khẩu"),
-      re_pass: Yup.string().required("Vui lòng xác nhận mật khẩu"),
     }),
     onSubmit: async (form) => {
       console.log(JSON.stringify(form));
@@ -124,34 +130,6 @@ const ClientRegister = () => {
                 onChange={formik.handleChange}
                 type="text"
                 value={formik.values.email}
-                variant="outlined"
-              />
-
-              <TextField
-                error={Boolean(formik.touched.password && formik.errors.password)}
-                helperText={formik.touched.password && formik.errors.password}
-                fullWidth
-                label="Mật khẩu"
-                margin="normal"
-                name="password"
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                type="password"
-                value={formik.values.password}
-                variant="outlined"
-              />
-
-              <TextField
-                error={Boolean(formik.touched.re_pass && formik.errors.re_pass)}
-                helperText={formik.touched.re_pass && formik.errors.re_pass}
-                fullWidth
-                label="Xác nhận mật khẩu"
-                margin="normal"
-                name="re_pass"
-                onBlur={formik.handleBlur}
-                onChange={formik.handleChange}
-                type="password"
-                value={formik.values.re_pass}
                 variant="outlined"
               />
 

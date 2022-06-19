@@ -150,13 +150,15 @@ return (
                     <TableCell>{!premiere.disabled ? <CheckIcon fontSize="small" /> : ""}</TableCell>
                     <TableCell>
                       <Grid item lg={12} sm={6} xl={3} xs={12} sx={{width: "50ch"}}>
-                        <Button size="medium" variant="contained" onClick={() => handleUpdate(premiere.id)}>
-                          <EditIcon fontSize="small" />
-                        </Button>
+                        {premiere.disabled && (
+                          <Button size="medium" variant="contained" onClick={() => handleUpdate(premiere.id)}>
+                            <EditIcon fontSize="small" />
+                          </Button>
+                        )}
                         <Button size="medium" variant="contained" onClick={() => handleDelete(premiere.id)} sx={{ margin: 1 }}>
                           <DeleteIcon fontSize="small" />
                         </Button>
-                      </Grid>          
+                      </Grid>     
                     </TableCell>
                   </TableRow>
                 ))}

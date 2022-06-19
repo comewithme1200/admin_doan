@@ -5,7 +5,7 @@
   "version": "2.0.0",
   "private": false,
   "scripts": {
-    "dev": "next",
+    "dev": "set PORT= 3006 && next",
     "build": "next build",
     "start": "next start",
     "export": "next export",
@@ -33,6 +33,8 @@
     "react": "^17.0.2",
     "react-chartjs-2": "^3.0.4",
     "react-dom": "^17.0.2",
+    "react-notifications": "^1.7.3",
+    "react-notifications-component": "^4.0.1",
     "react-perfect-scrollbar": "^1.5.8",
     "recharts": "^2.1.9",
     "uuid": "^8.3.0",

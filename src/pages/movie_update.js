@@ -7,33 +7,37 @@ import { Box, Button, Container, Input, TextField, Typography } from "@mui/mater
 import { DashboardLayout } from "../components/dashboard-layout";
 import { AppContext } from "src/context/AppContext";
 import { getMe } from "../utils/api/user";
-import { getRooms } from "../utils/api/rooms";
 import { getLocalStorage } from "../utils/helpers/localStorage";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
-import { createMovie, getMovies } from "src/utils/api/movies";
+import { updateMovie, getMovieById } from "src/utils/api/movies";
 import TextareaAutosize from '@mui/base/TextareaAutosize';
 import Stack from '@mui/material/Stack';
 
 
-const movieAdd = () => {
+const movie_update = () => {
     const [token, setToken] = useState(null);
-    const { isAdmin, setIsAdmin, loguedUser, setLoguedUser } = useContext(AppContext);
+    const [movie, setMovie] = useState(null);
+    const { isAdmin, setIsAdmin, loguedUser, setLoguedUser, movieDetailId, setMovieDetailId } = useContext(AppContext);
   
     const router = useRouter();
     useEffect(() => {
       const aux = getLocalStorage("token");
       setToken(getLocalStorage("token"));
-      console.log("Chạy login effect");
       if (!aux) {
         router.push("/login");
       }
     }, []);
   
+    console.log(movieDetailId);
     useEffect(() => {
       async function fetchData() {
+        console.log(movieDetailId);
+        const { data, request } = await getMovieById(token, movieDetailId);
+        if (request.ok) {
+          setMovie(data);
+        }
         if (!loguedUser) {
           const { data, request } = await getMe({ token });
           if (request.ok) {
@@ -43,12 +47,12 @@ const movieAdd = () => {
         }
       }
   
-      if (!loguedUser) {
+      if (!loguedUser || !movie) {
         fetchData();
       }
     }, [token]);
   
-    const Formik = useFormik({
+    const formik = useFormik({
       initialValues: {
         movie_name: "",
         premiere_date: new Date(),
@@ -65,7 +69,7 @@ const movieAdd = () => {
       }),
       onSubmit: async (form) => {
         console.log("formulario cliente", form);
-        const { data, request } = await createMovie(token, form);
+        const { data, request } = await updateMovie(token, form);
         console.log("cliente", data);
   
         if (request.ok) {
@@ -77,7 +81,7 @@ const movieAdd = () => {
     return (
       <>
         <Head>
-          <title>Thêm phim</title>
+          <title>Cập nhật phim</title>
         </Head>
         <DashboardLayout>
           <Box
@@ -94,7 +98,7 @@ const movieAdd = () => {
               <form onSubmit={formik.handleSubmit}>
                 <Box sx={{ my: 3 }}>
                   <Typography color="textPrimary" variant="h4">
-                    Thêm phim
+                    Cập nhật phim
                   </Typography>
                 </Box>
                 <Stack spacing={3}>
@@ -110,6 +114,7 @@ const movieAdd = () => {
                     type="text"
                     value={formik.values.movie_name}
                     variant="outlined"
+                    defaultValue={movie?.movie_name}
                   />
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <DatePicker
@@ -120,6 +125,7 @@ const movieAdd = () => {
                               formik.setFieldValue('premiere_date', Date.parse(value));
                               }}
                           renderInput={(params) => <TextField {...params} />}
+                          defaultValue={Date.parse(movie?.premiere_date)}
                       />
                   </LocalizationProvider>
                   <TextareaAutosize
@@ -128,6 +134,7 @@ const movieAdd = () => {
                     style={{ width: 1150, height: 500 }}
                     name="detail"
                     onChange={formik.handleChange}
+                    defaultValue={movie?.detail}
                   />
                   <TextField
                     fullWidth
@@ -139,6 +146,7 @@ const movieAdd = () => {
                     type="text"
                     value={formik.values.trailer_link}
                     variant="outlined"
+                    defaultValue={movie?.trailer_link}
                   />
                   <TextField
                     fullWidth
@@ -150,6 +158,7 @@ const movieAdd = () => {
                     type="number"
                     value={formik.values.time}
                     variant="outlined"
+                    defaultValue={movie?.time}
                   />
                   <Input 
                     type="file"
@@ -179,4 +188,4 @@ const movieAdd = () => {
     );
   };  
 
-export default movieAdd;
+export default movie_update;

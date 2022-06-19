@@ -19,7 +19,7 @@ const items = [
     admin: false,
   },
   {
-    href: "/client_register",
+    href: "/user_list",
     icon: <FormatListNumberedIcon fontSize="small" />,
     title: "Danh sách tài khoản",
     admin: false,

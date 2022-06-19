@@ -9,6 +9,7 @@ const Logout = () => {
     setSales,
     setUserSales,
     setMovies,
+    setRooms,
     setClients,
     setLoguedUser,
     setSalesmans,
@@ -23,6 +24,7 @@ const Logout = () => {
     setSales(null);
     setUserSales(null);
     setMovies(null);
+    setRooms(null);
     setClients(null);
     setLoguedUser(null);
     setSalesmans(null);

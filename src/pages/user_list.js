@@ -16,21 +16,20 @@ import {
 } from "@mui/material";
 import { AppContext } from "../context/AppContext";
 import { DashboardLayout } from "../components/dashboard-layout";
-import { getMovies, deleteMovie } from "../utils/api/movies";
 import { getLocalStorage } from "../utils/helpers/localStorage";
 import { Filter } from "../components/filter";
-import { getMe } from "../utils/api/user";
+import { getMe, getAdmin } from "../utils/api/user";
 import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
-const MoviesList = (props) => {
-  const { movies, setMovies, isAdmin, loguedUser, setLoguedUser, setIsAdmin, movieDetailId, setMovieDetailId} =
+const UserList = (props) => {
+  const { Admins, setAdmins, isAdmin, loguedUser, setLoguedUser, setIsAdmin, adminList, setAdminList, userDetailId, setUserDetailId } =
     useContext(AppContext);
   const [page, setPage] = useState(0);
   const [token, setToken] = useState(null);
-  const [filteredMovies, setFilteredMovies] = useState([]);
+  const [filteredAdmins, setFilteredAdmins] = useState([]);
   
   const router = useRouter();
 
@@ -44,10 +43,10 @@ const MoviesList = (props) => {
 
   useEffect(() => {
     async function fetchData() {
-      const { data, request } = await getMovies(null);
-      if (request.ok) {
-        setMovies(data);
-      }
+        const { data, request } = await getAdmin({ token });
+        if (request.ok) {
+          setAdminList(data);
+        }
       if (!loguedUser) {
         const { data, request } = await getMe({ token });
         if (request.ok) {
@@ -56,13 +55,13 @@ const MoviesList = (props) => {
         }
       }
     }
-    fetchData();
+   fetchData();
+    
   }, [token]);
 
   useEffect(() => {
-    setFilteredMovies(movies);
-    console.log(movies);
-  }, [movies]);
+    setFilteredAdmins(adminList);
+  }, [adminList]);
 
   const handleFilter = async (query) => {
     let aux = "";
@@ -72,53 +71,41 @@ const MoviesList = (props) => {
     });
     console.log("aux", aux);
 
-    const { data, request } = await getMovies(token, null, aux);
+    const { data, request } = await getAdmin(token, aux);
     if (request.ok) {
-      setFilteredMovies(data);
+      setFilteredAdmins(data);
     }
     console.log("filtered results", data);
   };
 
   const handleClear = () => {
-    setFilteredMovies(movies);
-  };
-
-  const handlePageChange = async (event, newPage) => {
-    const newUrl = newPage > page ? movies.next : movies.previous;
-    setPage(newPage);
-    const { data, request } = await getMovies(token, newUrl);
-    setMovies(data);
+    setFilteredAdmins(Admins);
   };
 
   const handleDelete = async (id) => {
-    if (confirm('Bạn chắc chắn muốn xóa?')) {
-      const { data, request } = await deleteMovie(token, id);
-      alert(data)
-      router.push("/movies_list")
-    } else {
-      alert("Something wrong!");
-    }
+
     console.log(id);
   }
 
   const handleUpdate = async (id) => {
-    setMovieDetailId(id);
-    router.push(`/movie_update/`);
+    setUserDetailId(id);
+    router.push("/user_update");
+    console.log(id);
   }
 
   const handleAdd = async => {
-    router.push("/movie_add")
+    router.push("/client_register")
   }
 
 
   return (
     <>
       <Head>
-        <title>Danh sách phim</title>
+        <title>Danh sách Admin</title>
       </Head>
     <DashboardLayout>
       <Card {...props}>
-        <CardHeader title="Danh sách phim"/>
+        <CardHeader title="Danh sách admin"/>
         <Box sx={{ width: "100%" }}>
           <Filter
             fields={[
@@ -132,31 +119,29 @@ const MoviesList = (props) => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Tên phim</TableCell>
-                  <TableCell>Ngày khởi chiếu</TableCell>
-                  <TableCell>Mô tả</TableCell>
-                  <TableCell>Link trailer</TableCell>
-                  <TableCell>Ảnh</TableCell>
-                  <TableCell>Thời lượng</TableCell>
+                  <TableCell>Tên</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Số điện thoại</TableCell>
+                  <TableCell>Ngày sinh nhật</TableCell>
+                  <TableCell>Địa chỉ</TableCell>
                   <TableCell>Chức năng</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredMovies &&
-                  filteredMovies.map((movie) => (
-                    <TableRow hover key={movie.id}>
-                      <TableCell>{movie.movie_name}</TableCell>
-                      <TableCell>{new Date(movie.premiere_date).toLocaleDateString("en-US")}</TableCell>
-                      <TableCell>{movie.detail}</TableCell>
-                      <TableCell>{movie.trailer_link}</TableCell>
-                      <TableCell><img src={movie.image_path} style={{height: "250px", width: "auto"}}></img></TableCell>
-                      <TableCell>{movie.time}</TableCell>
+                {filteredAdmins &&
+                  filteredAdmins.map((admin) => (
+                    <TableRow hover key={admin.id}>
+                      <TableCell>{admin.name}</TableCell>
+                      <TableCell>{admin.email}</TableCell>
+                      <TableCell>{admin.phoneNumber ? admin.phoneNumber : ""}</TableCell>
+                      <TableCell>{admin.dob ? admin.dob : ""}</TableCell>
+                      <TableCell>{admin.address ? admin.address : ""}</TableCell>
                       <TableCell>
                         <Grid item lg={12} sm={6} xl={3} xs={12} sx={{width: "50ch"}}>
-                          <Button size="medium" variant="contained" onClick={() => handleUpdate(movie.id)}>
+                          <Button size="medium" variant="contained" onClick={() => handleUpdate(admin.id)}>
                             <EditIcon fontSize="small" />
                           </Button>
-                          <Button size="medium" variant="contained" onClick={() => handleDelete(movie.id)} sx={{ margin: 1 }}>
+                          <Button size="medium" variant="contained" onClick={() => handleDelete(admin.id)} sx={{ margin: 1 }}>
                             <DeleteIcon fontSize="small" />
                           </Button>
                         </Grid>          
@@ -164,25 +149,6 @@ const MoviesList = (props) => {
                     </TableRow>
                   ))}
               </TableBody>
-              <TableFooter>
-                <TableRow>
-                  {movies && (
-                    <TablePagination
-                      colSpan={3}
-                      count={movies.length}
-                      rowsPerPage={10}
-                      onPageChange={handlePageChange}
-                      page={page}
-                      SelectProps={{
-                        inputProps: {
-                          "aria-label": "rows per page",
-                        },
-                        native: true,
-                      }}
-                    />
-                  )}
-                </TableRow>
-              </TableFooter>
             </Table>
           </TableContainer>
         </Box>
@@ -198,4 +164,4 @@ const MoviesList = (props) => {
   );
 };
 
-export default MoviesList;
+export default UserList;

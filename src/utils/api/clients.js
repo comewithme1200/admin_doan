@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000/api/";
+const BASE_URL = "http://localhost:8080/";
 
 const getClients = async (token, nextUrl, query) => {
   console.log(nextUrl);
@@ -98,6 +98,7 @@ const getClientIA = async (token, id, income) => {
 
 const createClient = async (token, body) => {
   const url = `${BASE_URL + `client/`}`;
+
   try {
     const request = await fetch(url, {
       method: "POST",

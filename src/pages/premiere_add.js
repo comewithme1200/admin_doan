@@ -13,14 +13,17 @@ import { getLocalStorage } from "../utils/helpers/localStorage";
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { getMovies } from "src/utils/api/movies";
+import {NotificationContainer} from 'react-notifications';
+import { store } from "react-notifications-component";
+import { getMovies, getMovieById } from "src/utils/api/movies";
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 
 const premiere_add = () => {
     const [token, setToken] = useState(null);
-    const [value, setValue] = useState(new Date('2014-08-18T21:11:54'));
+    const [roomId, setRoomId] = useState(null);
+    const [movieId, setMovieId] = useState(null);
     const { isAdmin, setIsAdmin, loguedUser, setLoguedUser, movies, setMovies, rooms, setRooms } = useContext(AppContext);
   
     const router = useRouter();
@@ -36,14 +39,16 @@ const premiere_add = () => {
     useEffect(() => {
       async function fetchData() {
         console.log("Chạy effect");
-        const { data, request } = await getMovies(null);
+        const { request, data } = await getMovies(null);
         if (request.ok) {
             setMovies(data);
         }
         
-        const { roomData, roomRequest } = await getRooms();
-        if (roomRequest.ok) {
-            setRooms(roomData);
+        if (!rooms) {
+          const { request, data } = await getRooms();
+          if (request.ok) {
+              setRooms(data);
+          }
         }
         
         if (!loguedUser) {
@@ -55,9 +60,7 @@ const premiere_add = () => {
         }
       }
   
-      if (!loguedUser) {
-        fetchData();
-      }
+      fetchData();
     }, [token]);
   
     const formik = useFormik({
@@ -75,11 +78,27 @@ const premiere_add = () => {
       }),
       onSubmit: async (form) => {
         console.log("Form", form);
-        //const { data, request } = await createClient(token, form);
-        //console.log("cliente", data);
-  
-        if (request.ok) {
-          router.push("/");
+        const { data, request } = await getMovieById(token, movieId);
+        const diff = form.start_time.getTime() - form.end_time.getTime();
+        const minDiff = Math.round(diff / 60000);
+        console.log(minDiff < data.time);
+        if (minDiff < data.time) {
+          store.addNotification({
+            title: "Bad Request",
+            message: "Something Wrong",
+            type: "danger", // 'default', 'success', 'info', 'warning'
+            container: "top-left", // where to position the notifications
+            animationIn: ["animated", "fadeIn"], // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"], // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          });
+        } else {
+          const { data, request } = await createPremiere(token, form, movieId, roomId);
+          if (request.ok) {
+            router.push("/premiere_list");
+          }
         }
       },
     });
@@ -111,17 +130,19 @@ const premiere_add = () => {
                     <Select
                         name="room_name"
                         value={formik.values.room_name}
-                        label="Age"
-                        onChange={(value) => {
-                            formik.setFieldValue('room_name', value);
+                        label="Phòng"
+                        onChange={e => {
+                          console.log(e.target);
+                          formik.setFieldValue("room_name", e.target.value);
+                          setRoomId(e.target.value);
                         }}
                     >
                         {rooms && rooms.map((room) => (
                             <MenuItem
                             key={room.id}
-                            value={room.room_name}
+                            value={room.id}
                             >
-                            {room.room_name}
+                            {room.room_name + "(" + room.cinema_name + ")"}
                             </MenuItem>
                         ))}
                     </Select>
@@ -130,14 +151,15 @@ const premiere_add = () => {
                         name="movie_name"
                         value={formik.values.movie_name}
                         label="Phim"
-                        onChange={(value) => {
-                            formik.setFieldValue('movie_name', value);
+                        onChange={e => {
+                          formik.setFieldValue("movie_name", e.target.value);
+                          setMovieId(e.target.value);
                         }}
                     >
                         {movies && movies.map((movie) => (
                             <MenuItem
                             key={movie.id}
-                            value={movie.movie_name}
+                            value={movie.id}
                             >
                             {movie.movie_name}
                             </MenuItem>
@@ -183,6 +205,7 @@ const premiere_add = () => {
             </Container>
           </Box>
         </DashboardLayout>
+        <NotificationContainer/>
       </>
     );
   };
