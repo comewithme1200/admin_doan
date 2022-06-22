@@ -8,7 +8,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AppContext } from "src/context/AppContext";
-import { createUser } from "../utils/api/user";
+import { updateUser } from "../utils/api/user";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { getMe, getUserById } from "../utils/api/user";
 import { getLocalStorage } from "../utils/helpers/localStorage";
@@ -68,13 +68,8 @@ const ClientRegister = () => {
     }),
     onSubmit: async (form) => {
       console.log(JSON.stringify(form));
-      if(form.password != form.re_pass) {
-        alert("Sai xác nhận mật khẩu");
-        return;
-      }
-      const { data, request } = await createUser(token, form);
+      const { data, request } = await updateUser(token, form, userDetailId);
       console.log("User", data);
-
       if (request.ok) {
         router.push("/user_list");
       }
@@ -84,7 +79,7 @@ const ClientRegister = () => {
   return (
     <>
       <Head>
-        <title>Đăng kí thành viên</title>
+        <title>Cập nhật thông tin</title>
       </Head>
       <DashboardLayout>
         <Box
@@ -101,7 +96,7 @@ const ClientRegister = () => {
             <form onSubmit={formik.handleSubmit}>
               <Box sx={{ my: 3 }}>
                 <Typography color="textPrimary" variant="h4">
-                  Đăng kí thành viên
+                  Cập nhật thông tin
                 </Typography>
               </Box>
               <Grid container spacing={3}></Grid>
@@ -182,7 +177,7 @@ const ClientRegister = () => {
                   type="submit"
                   variant="contained"
                 >
-                  Đăng kí
+                  Cập nhật  
                 </Button>
               </Box>
             </form>

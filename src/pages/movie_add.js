@@ -48,7 +48,7 @@ const movieAdd = () => {
       }
     }, [token]);
   
-    const Formik = useFormik({
+    const formik = useFormik({
       initialValues: {
         movie_name: "",
         premiere_date: new Date(),
@@ -66,7 +66,7 @@ const movieAdd = () => {
       onSubmit: async (form) => {
         console.log("formulario cliente", form);
         const { data, request } = await createMovie(token, form);
-        console.log("cliente", data);
+        console.log("client", data);
   
         if (request.ok) {
           router.push("/movies_list");

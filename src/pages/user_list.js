@@ -25,7 +25,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
 const UserList = (props) => {
-  const { Admins, setAdmins, isAdmin, loguedUser, setLoguedUser, setIsAdmin, adminList, setAdminList, userDetailId, setUserDetailId } =
+  const { isAdmin, loguedUser, setLoguedUser, setIsAdmin, adminList, setAdminList, userDetailId, setUserDetailId } =
     useContext(AppContext);
   const [page, setPage] = useState(0);
   const [token, setToken] = useState(null);
@@ -41,9 +41,11 @@ const UserList = (props) => {
     }
   }, []);
 
+  console.log(loguedUser);
+
   useEffect(() => {
     async function fetchData() {
-        const { data, request } = await getAdmin({ token });
+        const { data, request } = await getAdmin(token);
         if (request.ok) {
           setAdminList(data);
         }
@@ -79,7 +81,7 @@ const UserList = (props) => {
   };
 
   const handleClear = () => {
-    setFilteredAdmins(Admins);
+    setFilteredAdmins(adminList);
   };
 
   const handleDelete = async (id) => {
@@ -138,12 +140,16 @@ const UserList = (props) => {
                       <TableCell>{admin.address ? admin.address : ""}</TableCell>
                       <TableCell>
                         <Grid item lg={12} sm={6} xl={3} xs={12} sx={{width: "50ch"}}>
+                        {loguedUser.name === admin.name && (
                           <Button size="medium" variant="contained" onClick={() => handleUpdate(admin.id)}>
                             <EditIcon fontSize="small" />
                           </Button>
+                        )}
+                        {loguedUser.name != admin.name && (
                           <Button size="medium" variant="contained" onClick={() => handleDelete(admin.id)} sx={{ margin: 1 }}>
                             <DeleteIcon fontSize="small" />
                           </Button>
+                        )}
                         </Grid>          
                       </TableCell>
                     </TableRow>

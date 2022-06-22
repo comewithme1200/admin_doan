@@ -28,7 +28,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 
 const SalesList = (props) => {
-  const { premieres, setPremieres, isAdmin, loguedUser, setLoguedUser, setIsAdmin } =
+  const { premieres, setPremieres, isAdmin, loguedUser, setLoguedUser, setIsAdmin, setPremiereDetailId } =
   useContext(AppContext);
 const [page, setPage] = useState(0);
 const [token, setToken] = useState(null);
@@ -58,10 +58,7 @@ useEffect(() => {
       }
     }
   }
-
-  if (!premieres || !loguedUser) {
-    fetchData();
-  }
+  fetchData();
 }, [token]);
 
 useEffect(() => {
@@ -100,6 +97,8 @@ const handleDelete = async (id) => {
 }
 
 const handleUpdate = async (id) => {
+  setPremiereDetailId(id);
+  router.push("/premiere_update")
   console.log(id);
 }
 
@@ -147,17 +146,14 @@ return (
                     <TableCell>{premiere.movie_name}</TableCell>
                     <TableCell>{premiere.room_name}</TableCell>
                     <TableCell>{premiere.cinema_name}</TableCell>
-                    <TableCell>{!premiere.disabled ? <CheckIcon fontSize="small" /> : ""}</TableCell>
+                    <TableCell>{premiere.disabled === "t" ? <CheckIcon fontSize="small" /> : ""}</TableCell>
                     <TableCell>
                       <Grid item lg={12} sm={6} xl={3} xs={12} sx={{width: "50ch"}}>
-                        {premiere.disabled && (
+                        {premiere.disabled === "f" && (
                           <Button size="medium" variant="contained" onClick={() => handleUpdate(premiere.id)}>
                             <EditIcon fontSize="small" />
                           </Button>
                         )}
-                        <Button size="medium" variant="contained" onClick={() => handleDelete(premiere.id)} sx={{ margin: 1 }}>
-                          <DeleteIcon fontSize="small" />
-                        </Button>
                       </Grid>     
                     </TableCell>
                   </TableRow>

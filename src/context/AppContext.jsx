@@ -15,6 +15,7 @@ const AppProvider = ({ children }) => {
   const [movieTurnover, setMovieTurnover] = useState(null);
   const [movieDetailId, setMovieDetailId] = useState(null);
   const [userDetailId, setUserDetailId] = useState(null);
+  const [premiereDetailId, setPremiereDetailId] = useState(null);
   const [cinemaTurnover, setCinemaTurnover] = useState(null);
   const [adminList, setAdminList] = useState(null);
   const [loguedUser, setLoguedUser] = useState(null);
@@ -52,6 +53,8 @@ const AppProvider = ({ children }) => {
       setMovieDetailId,
       userDetailId,
       setUserDetailId,
+      premiereDetailId,
+      setPremiereDetailId,
       clients,
       setClients,
       loguedUser,
@@ -63,7 +66,7 @@ const AppProvider = ({ children }) => {
       ordersCount,
       setOrdersCount,
     });
-  }, [token, isAdmin, sales, userSales, movies, adminList, premieres, movieDetailId, userDetailId, rooms, movieTurnover, cinemaTurnover, clients, loguedUser, salesmans, salesCount, orders, ordersCount]);
+  }, [token, isAdmin, sales, userSales, movies, adminList, premieres, movieDetailId, userDetailId, premiereDetailId, rooms, movieTurnover, cinemaTurnover, clients, loguedUser, salesmans, salesCount, orders, ordersCount]);
 
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

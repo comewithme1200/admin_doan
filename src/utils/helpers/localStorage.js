@@ -1,10 +1,10 @@
 const setLocalStorage = (key, value) => {
-    window.localStorage.setItem(key, value);
+    window.sessionStorage.setItem(key, value);
 };
 
 const getLocalStorage = (key) => {
     if (typeof window !== "undefined") {
-        return window.localStorage.getItem(key);
+        return window.sessionStorage.getItem(key);
     }
 }
 

@@ -13,22 +13,22 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { getMovies, getMovieById } from "src/utils/api/movies";
-import { createPremiere } from "src/utils/api/premiere";
+import { updatePremiere, getPremiereDetail } from "src/utils/api/premiere";
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 
-const premiere_add = () => {
+const premiere_update = () => {
     const [token, setToken] = useState(null);
     const [roomId, setRoomId] = useState(null);
     const [movieId, setMovieId] = useState(null);
-    const { isAdmin, setIsAdmin, loguedUser, setLoguedUser, movies, setMovies, rooms, setRooms } = useContext(AppContext);
+    const [premiereDetail, setPremiereDetail] = useState(null);
+    const { isAdmin, setIsAdmin, loguedUser, setLoguedUser, movies, setMovies, rooms, setRooms, premiereDetailId } = useContext(AppContext);
   
     const router = useRouter();
     useEffect(() => {
       const aux = getLocalStorage("token");
       setToken(getLocalStorage("token"));
-      console.log("Chạy login effect");
       if (!aux) {
         router.push("/login");
       }
@@ -39,6 +39,19 @@ const premiere_add = () => {
         const { request, data } = await getMovies(null);
         if (request.ok) {
             setMovies(data);
+        }
+
+        if (!premiereDetail) {
+            const { request, data } = await getPremiereDetail(premiereDetailId);
+            if (request.ok) {
+                formik.setFieldValue("room_name", data.room_id);
+                formik.setFieldValue("movie_name", data.movie_id);
+                formik.setFieldValue("start_time", new Date(data.start_time));
+                formik.setFieldValue("end_time", new Date (data.end_time));
+                setMovieId(data.movie_id);
+                setRoomId(data.room_id);
+                setPremiereDetail(data);
+            }
         }
         
         if (!rooms) {
@@ -82,7 +95,7 @@ const premiere_add = () => {
         if (Math.abs(minDiff) < data.time) {
           alert("Thời gian suất chiếu ngắn hơn thời lượng phim");
         } else {
-          const { data, request } = await createPremiere(token, form, movieId, roomId);
+          const { data, request } = await updatePremiere(token, form, movieId, roomId, premiereDetailId);
           if (request.ok) {
             router.push("/premiere_list");
           } else {
@@ -187,7 +200,7 @@ const premiere_add = () => {
                     type="submit"
                     variant="contained"
                   >
-                    Thêm mới
+                    Cập nhật
                   </Button>
                 </Box>
               </form>
@@ -198,4 +211,4 @@ const premiere_add = () => {
     );
   };
 
-export default premiere_add;
+export default premiere_update;

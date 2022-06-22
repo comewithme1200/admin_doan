@@ -36,8 +36,13 @@ const getMe = async ({ token }) => {
   }
 };
 
-const getAdmin = async ({token}) => {
-  const url = BASE_URL + `users/getAdmin`;
+const getAdmin = async (token, aux) => {
+  var url;
+  if (aux) {
+    url = BASE_URL + `users/filter?` + aux;
+  } else {
+    url = BASE_URL + `users/getAdmin`;
+  }
   const requestOptions = { headers: { Authorization: `Token ${token}` } };
   try {
     const request = await fetch(url, requestOptions);
@@ -91,4 +96,29 @@ const createUser = async (token, form) => {
   }
 }
 
-export { login, getMe, getAdmin, createUser, getUserById };
+const updateUser = async (token, form, userDetailId) => {
+  const url = BASE_URL + `users?id=` + userDetailId;
+  const data = {
+    email: form.email,
+    name: form.name,
+    phoneNumber: form.phone,
+    dob: form.dob,
+    address: form.address
+  }
+  const requestOptions = {
+    method: "PUT",
+    body: JSON.stringify(data), 
+    headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Token ${token}` } 
+  };
+  try {
+    const request = await fetch(url, requestOptions);
+    const data = await request.json();
+    return { request, data };
+  } catch (e) {
+    return { request: { ok: false, message: e.message } };
+  }
+}
+
+export { login, getMe, getAdmin, createUser, getUserById, updateUser };

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Box, Button, Container, Input, TextField, Typography } from "@mui/material";
+import { Box, Button, Container, Grid, Input, TextField, Typography } from "@mui/material";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { AppContext } from "src/context/AppContext";
 import { getMe } from "../utils/api/user";
@@ -11,7 +11,7 @@ import { getLocalStorage } from "../utils/helpers/localStorage";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { updateMovie, getMovieById } from "src/utils/api/movies";
+import { updateMovie, getMovieById, updateMovieWithout } from "src/utils/api/movies";
 import TextareaAutosize from '@mui/base/TextareaAutosize';
 import Stack from '@mui/material/Stack';
 
@@ -19,9 +19,23 @@ import Stack from '@mui/material/Stack';
 const movie_update = () => {
     const [token, setToken] = useState(null);
     const [movie, setMovie] = useState(null);
+    const [preview, setPreview] = useState(null);
     const { isAdmin, setIsAdmin, loguedUser, setLoguedUser, movieDetailId, setMovieDetailId } = useContext(AppContext);
   
     const router = useRouter();
+
+    const imageHandler = (e) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(e.target.files[0]);
+      reader.onload = () => {
+        if(reader.readyState === 2) {
+          setPreview(reader.result)
+        }
+      }
+      console.log(preview);
+      console.log(reader);
+    }
+
     useEffect(() => {
       const aux = getLocalStorage("token");
       setToken(getLocalStorage("token"));
@@ -30,12 +44,16 @@ const movie_update = () => {
       }
     }, []);
   
-    console.log(movieDetailId);
     useEffect(() => {
       async function fetchData() {
-        console.log(movieDetailId);
         const { data, request } = await getMovieById(token, movieDetailId);
         if (request.ok) {
+          formik.setFieldValue("movie_name", data.movie_name);
+          formik.setFieldValue("premiere_date", new Date(data.premiere_date));
+          formik.setFieldValue("detail", data.detail);
+          formik.setFieldValue("trailer_link", data.trailer_link);
+          formik.setFieldValue("image_path", data.image_path);
+          formik.setFieldValue("time", data.time);
           setMovie(data);
         }
         if (!loguedUser) {
@@ -59,6 +77,7 @@ const movie_update = () => {
         detail: "",
         trailer_link: "",
         image: "",
+        image_path:"",
         time: 0
       },
       validationSchema: Yup.object({
@@ -69,11 +88,17 @@ const movie_update = () => {
       }),
       onSubmit: async (form) => {
         console.log("formulario cliente", form);
-        const { data, request } = await updateMovie(token, form);
-        console.log("cliente", data);
-  
-        if (request.ok) {
-          router.push("/movies_list");
+        if (form.image === '') {
+          const request = await updateMovieWithout(token, form, movieDetailId);
+          if (request.ok) {
+            router.push("/movies_list");
+          }
+        } else {
+          const request = await updateMovie(token, form, movieDetailId);
+          console.log(request);
+          if (request.ok) {
+            router.push("/movies_list");
+          }
         }
       },
     });
@@ -114,7 +139,6 @@ const movie_update = () => {
                     type="text"
                     value={formik.values.movie_name}
                     variant="outlined"
-                    defaultValue={movie?.movie_name}
                   />
                   <LocalizationProvider dateAdapter={AdapterDateFns}>
                       <DatePicker
@@ -122,10 +146,9 @@ const movie_update = () => {
                           value={formik.values.premiere_date}
                           name="premiere_date"
                           onChange={(value) => {
-                              formik.setFieldValue('premiere_date', Date.parse(value));
+                              formik.setFieldValue('premiere_date', new Date(value).getTime());
                               }}
                           renderInput={(params) => <TextField {...params} />}
-                          defaultValue={Date.parse(movie?.premiere_date)}
                       />
                   </LocalizationProvider>
                   <TextareaAutosize
@@ -133,8 +156,8 @@ const movie_update = () => {
                     placeholder="Chi tiết phim"
                     style={{ width: 1150, height: 500 }}
                     name="detail"
+                    value={formik.values.detail}
                     onChange={formik.handleChange}
-                    defaultValue={movie?.detail}
                   />
                   <TextField
                     fullWidth
@@ -146,7 +169,6 @@ const movie_update = () => {
                     type="text"
                     value={formik.values.trailer_link}
                     variant="outlined"
-                    defaultValue={movie?.trailer_link}
                   />
                   <TextField
                     fullWidth
@@ -158,15 +180,19 @@ const movie_update = () => {
                     type="number"
                     value={formik.values.time}
                     variant="outlined"
-                    defaultValue={movie?.time}
                   />
-                  <Input 
-                    type="file"
-                    name="image"
-                    onChange={(event) => {
-                      formik.setFieldValue('image', event.target)
-                    }}
-                  />
+                  <Grid>
+                    <Input 
+                      type="file"
+                      name="image"
+                      onChange={(event) => {
+                        formik.setFieldValue('image', event.target)
+                        formik.setFieldValue('image_path', null)
+                        imageHandler(event)
+                      }}
+                    />
+                    <img src={formik.values.image_path ? formik.values.image_path : preview}></img>
+                  </Grid>
                 </Stack>
                 <Box sx={{ py: 2 }}>
                   <Button
@@ -177,7 +203,7 @@ const movie_update = () => {
                     type="submit"
                     variant="contained"
                   >
-                    Thêm mới
+                    Cập nhật
                   </Button>
                 </Box>
               </form>

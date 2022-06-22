@@ -72,7 +72,7 @@ const MoviesList = (props) => {
     });
     console.log("aux", aux);
 
-    const { data, request } = await getMovies(token, null, aux);
+    const { data, request } = await getMovies(aux);
     if (request.ok) {
       setFilteredMovies(data);
     }
